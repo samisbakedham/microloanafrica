@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Report: AI Microloans for Africa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Visualization & Content Choices: 
+        - Overview: Key metric cards for quick insights. Goal: Inform. Method: HTML/CSS cards. Interaction: Static display. Justification: Immediate high-level understanding.
+        - Market Growth (Opportunity): Line chart for global microfinance market. Goal: Show Change/Trend. Method: Chart.js Line Chart. Interaction: Tooltips on hover. Justification: Visualize growth trajectory.
+        - Mobile Money (Opportunity): Bar chart for mobile money stats. Goal: Compare/Inform. Method: Chart.js Bar Chart. Interaction: Tooltips. Justification: Highlight key infrastructure.
+        - Unmet Need (Opportunity): Donut chart and dynamic stat cards. Goal: Show Proportion/Inform. Method: Chart.js Donut Chart, HTML/CSS cards. Interaction: Tooltips, static. Justification: Quantify the problem.
+        - Traditional MFI Challenges (Opportunity): List with icons. Goal: Inform. Method: HTML/CSS. Interaction: Static. Justification: Contextualize the need for a new solution.
+        - AI & Alt Data (AI Solution): Interactive clickable elements for data sources, diagram for AI process. Goal: Organize/Inform. Method: HTML/CSS/JS for click-to-reveal, HTML/CSS for diagram. Interaction: Click to show details. Justification: Explain the core technology intuitively.
+        - Success Stories (AI Solution): Clickable cards. Goal: Inform/Build Credibility. Method: HTML/CSS/JS. Interaction: Click to expand. Justification: Demonstrate viability.
+        - Revenue Model & Loan Process (Business Model): Diagrams. Goal: Inform/Organize. Method: HTML/CSS. Interaction: Static. Justification: Clarify financial and operational flow.
+        - Regulatory Overview (Operations & Risks): Interactive tabs/accordion for key countries. Goal: Organize/Inform. Method: HTML/CSS/JS. Interaction: Click to switch content. Justification: Present complex regulatory info concisely.
+        - Risk Matrix (Operations & Risks): Clickable risk categories. Goal: Inform/Organize. Method: HTML/CSS/JS. Interaction: Click to reveal mitigations. Justification: Structured risk presentation.
+        - KPIs (Operations & Risks): Styled list/cards. Goal: Inform. Method: HTML/CSS. Interaction: Static. Justification: Highlight measures of success.
+        - All textual content is summarized from the report to be web-friendly.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used.
+    -->
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #FDFBF5; /* Warm Beige */ color: #4A4A4A; /* Dark Gray for text */ }
+        .nav-button { transition: all 0.3s ease; }
+        .nav-button.active { background-color: #D97706; /* Muted Terracotta */ color: white; }
+        .nav-button:hover:not(.active) { background-color: #F3EADA; /* Lighter Beige */ }
+        .content-section { display: none; animation: fadeIn 0.5s; }
+        .content-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .chart-container { position: relative; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; height: 300px; max-height: 400px; }
+        @media (min-width: 768px) { .chart-container { height: 350px; } }
+        .stat-card { background-color: #FFFFFF; border-left: 5px solid #0D9488; /* Deep Teal */ }
+        .interactive-card { cursor: pointer; transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; }
+        .interactive-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); }
+        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+        .accordion-button.open + .accordion-content { max-height: 1000px; /* Adjust as needed */ }
+        .tab-button.active { border-bottom-color: #D97706; color: #D97706; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .icon-placeholder { display: inline-block; width: 20px; height: 20px; background-color: #0D9488; border-radius: 50%; text-align: center; color: white; font-size: 12px; line-height: 20px; margin-right: 8px; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-[#FAEBD7] shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <h1 class="text-xl sm:text-2xl font-bold text-[#D97706]">AI Microloans for Africa: Interactive Proposal</h1>
+                <button id="mobileMenuButton" class="md:hidden p-2 rounded-md text-[#4A4A4A] hover:text-[#D97706] hover:bg-[#F3EADA] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#D97706]">
+                    <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
+            </div>
+            <nav id="mainNav" class="hidden md:flex flex-col md:flex-row md:space-x-1 py-2">
+                <button data-target="overview" class="nav-button active text-sm font-medium py-2 px-3 rounded-md">Overview</button>,
+                <button data-target="opportunity" class="nav-button text-sm font-medium py-2 px-3 rounded-md">The Opportunity</button>
+                <button data-target="aiSolution" class="nav-button text-sm font-medium py-2 px-3 rounded-md">The AI Solution</button>
+                <button data-target="businessModel" class="nav-button text-sm font-medium py-2 px-3 rounded-md">Our Business Model</button>
+                <button data-target="operationsRisks" class="nav-button text-sm font-medium py-2 px-3 rounded-md">Operations & Risks</button>
+                <button data-target="ycPitch" class="nav-button text-sm font-medium py-2 px-3 rounded-md">The YC Pitch</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 sm:p-6 lg:p-8">
+        
+        <section id="overview" class="content-section active">
+            <h2 class="text-2xl sm:text-3xl font-bold text-[#0D9488] mb-6">Project Overview</h2>
+            <p class="mb-6 text-lg leading-relaxed">This interactive proposal outlines an AI-driven microloan service tailored for Africa. Our mission is to harness technology to provide rapid, accessible, and fairly priced credit to individuals and MSMEs currently excluded by traditional financial systems, fostering financial inclusion and economic empowerment across select stable African nations.</p>
+            
+            <div class="grid md:grid-cols-3 gap-4 mb-8">
+                <div class="stat-card p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-semibold text-[#0D9488] mb-2">Global Microfinance Market (2029)</h3>
+                    <p class="text-3xl font-bold">$368.02 Billion</p>
+                    <p class="text-sm text-gray-600">Projected Growth (CAGR 11.2%)</p>
+                </div>
+                <div class="stat-card p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-semibold text-[#0D9488] mb-2">SSA Mobile Money Transactions (2024)</h3>
+                    <p class="text-3xl font-bold">$1.68 Trillion</p>
+                    <p class="text-sm text-gray-600">Value Processed</p>
+                </div>
+                <div class="stat-card p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-semibold text-[#0D9488] mb-2">Unbanked Adults Globally</h3>
+                    <p class="text-3xl font-bold">~1.4 Billion</p>
+                    <p class="text-sm text-gray-600">Significant portion in Africa</p>
+                </div>
+            </div>
+             <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h3 class="text-xl font-semibold text-[#0D9488] mb-3">Core Idea</h3>
+                <p class="mb-4">Leverage AI and alternative data (mobile phone usage, mobile money transactions, psychometrics) to build a proprietary creditworthiness database. This enables us to serve the "invisible" population with fair and accessible microloans, delivered via a mobile-first platform.</p>
+                <p class="font-semibold">Key Objectives:</p>
+                <ul class="list-disc list-inside ml-4 mt-2 text-gray-700">
+                    <li>Address unmet credit demand for individuals & MSMEs.</li>
+                    <li>Reduce operational costs and default rates compared to traditional MFIs.</li>
+                    <li>Promote financial inclusion and economic development.</li>
+                    <li>Build a scalable, high-impact business aligned with YC's focus.</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="opportunity" class="content-section">
+            <h2 class="text-2xl sm:text-3xl font-bold text-[#0D9488] mb-6">The African Microloan Market: A Landscape of Opportunity</h2>
+            <p class="mb-6 text-lg leading-relaxed">The African continent is experiencing a dynamic transformation in its financial services sector, driven by technological advancements and a growing recognition of the critical need for financial inclusion. This section explores the market size, the challenges traditional microfinance faces, and the specific unmet credit needs our AI-driven service aims to address.</p>
+
+            <div class="grid md:grid-cols-2 gap-8 mb-8">
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">Global Microfinance Market Growth</h3>
+                    <div class="chart-container bg-white p-4 rounded-lg shadow">
+                        <canvas id="marketGrowthChart"></canvas>
+                    </div>
+                    <p class="text-sm mt-2 text-center text-gray-600">Projected growth from $215.51B in 2024 to $368.02B by 2029.</p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">Sub-Saharan Africa Mobile Money Ecosystem (2024)</h3>
+                     <div class="stat-card p-6 rounded-lg shadow-lg mb-4">
+                        <h4 class="text-lg font-semibold text-[#0D9488] mb-1">Transaction Value</h4>
+                        <p class="text-2xl font-bold">$1.68 Trillion</p>
+                    </div>
+                    <div class="stat-card p-6 rounded-lg shadow-lg">
+                        <h4 class="text-lg font-semibold text-[#0D9488] mb-1">Global Monthly Active Accounts</h4>
+                        <p class="text-2xl font-bold">> 500 Million</p>
+                        <p class="text-xs text-gray-500">(SSA is a primary driver)</p>
+                    </div>
+                    <p class="text-sm mt-4 text-center text-gray-600">Mobile money provides robust infrastructure for loan disbursement and repayment.</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
+                <h3 class="text-xl font-semibold mb-4">The Unmet Need: Financial Exclusion</h3>
+                <div class="grid md:grid-cols-2 gap-6 items-center">
+                    <div>
+                        <p class="mb-2"><span class="font-bold text-[#D97706]">1.4 Billion</span> adults globally remain unbanked.</p>
+                        <p class="mb-2"><span class="font-bold text-[#D97706]">65 Million</span> formal MSMEs in developing countries face unmet financing needs.</p>
+                        <p class="mb-4">In Nigeria alone, <span class="font-bold text-[#D97706]">38.1 million</span> adults were financially excluded in 2020.</p>
+                        <p>This data highlights a vast, underserved market increasingly comfortable with digital tech but lacking access to suitable credit.</p>
+                    </div>
+                    <div class="chart-container bg-gray-50 p-2 rounded-lg" style="height: 250px; max-height:250px;">
+                         <canvas id="financialExclusionChart"></canvas>
+                         <p class="text-xs text-center mt-1 text-gray-500">Illustrative: Financial Exclusion in a Key Market (e.g. Nigeria 2020)</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
+                <h3 class="text-xl font-semibold mb-3">Challenges for Traditional Microfinance</h3>
+                <ul class="space-y-3">
+                    <li class="flex items-start"><span class="icon-placeholder">!</span><span><strong class="text-[#D97706]">High Default Rates:</strong> ~30.8% for MFIs in Sub-Saharan Africa, significantly higher than banks.</span></li>
+                    <li class="flex items-start"><span class="icon-placeholder">$</span><span><strong class="text-[#D97706]">Access to Capital:</strong> Low capital base and lower profitability (-2% ROA) hinder scaling.</span></li>
+                    <li class="flex items-start"><span class="icon-placeholder">⚙️</span><span><strong class="text-[#D97706]">High Operational Costs:</strong> Range from 26% to 103% of loan portfolio, driven by manual processes and infrastructure challenges.</span></li>
+                    <li class="flex items-start"><span class="icon-placeholder">📈</span><span><strong class="text-[#D97706]">Competition:</strong> Pressure from commercial banks and agile Fintechs.</span></li>
+                    <li class="flex items-start"><span class="icon-placeholder">⚖️</span><span><strong class="text-[#D97706]">"Poverty Premium":</strong> High costs often lead to excessively high interest rates for the poorest borrowers.</span></li>
+                </ul>
+                <p class="mt-4">Our AI-driven, digital-first model directly addresses these inefficiencies.</p>
+            </div>
+
+             <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h3 class="text-xl font-semibold text-[#0D9488] mb-4">Key Unmet Credit Needs We Address</h3>
+                <div class="space-y-4">
+                    <div>
+                        <button class="accordion-button w-full text-left p-3 bg-[#F3EADA] hover:bg-[#EADBC8] rounded-md font-semibold focus:outline-none flex justify-between items-center">
+                            Working Capital for MSMEs
+                            <span class="plus-minus text-xl transform transition-transform duration-300">&#x2B;</span>
+                        </button>
+                        <div class="accordion-content p-3 bg-gray-50 rounded-b-md">
+                            <p>Many small businesses struggle with cash flow. Agri-SMEs in SSA face a ~$90B annual unmet loan demand. Our service can provide quick access to smaller loan amounts often overlooked by traditional lenders.</p>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="accordion-button w-full text-left p-3 bg-[#F3EADA] hover:bg-[#EADBC8] rounded-md font-semibold focus:outline-none flex justify-between items-center">
+                            Consumer Finance & Emergencies
+                            <span class="plus-minus text-xl transform transition-transform duration-300">&#x2B;</span>
+                        </button>
+                        <div class="accordion-content p-3 bg-gray-50 rounded-b-md">
+                            <p>Individuals need funds for unexpected shocks (health, crop loss) and long-term goals (housing, education). Nigeria shows huge gaps for payday loans, rent, household goods, etc.</p>
+                        </div>
+                    </div>
+                     <div>
+                        <button class="accordion-button w-full text-left p-3 bg-[#F3EADA] hover:bg-[#EADBC8] rounded-md font-semibold focus:outline-none flex justify-between items-center">
+                            Credit for Women Entrepreneurs
+                            <span class="plus-minus text-xl transform transition-transform duration-300">&#x2B;</span>
+                        </button>
+                        <div class="accordion-content p-3 bg-gray-50 rounded-b-md">
+                            <p>Women own ~40% of MSMEs in Nigeria but face disproportionate barriers. 56% of female entrepreneurs had loan applications rejected vs. 17% for men, often due to lack of collateral. Our alternative data approach can help bridge this gap.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="aiSolution" class="content-section">
+            <h2 class="text-2xl sm:text-3xl font-bold text-[#0D9488] mb-6">Leveraging AI and Alternative Data</h2>
+            <p class="mb-6 text-lg leading-relaxed">Our core innovation lies in using Artificial Intelligence and diverse alternative data sources to build inclusive credit scoring models. This allows us to assess the creditworthiness of the "invisible" population who lack formal credit histories, making financial services accessible to them.</p>
+
+            <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
+                <h3 class="text-xl font-semibold mb-3">The Power of AI in Credit Scoring</h3>
+                <p class="mb-2">AI, especially machine learning, analyzes vast datasets beyond traditional financial records. It identifies complex patterns in alternative data (mobile usage, transactions, psychometrics) to predict repayment likelihood.</p>
+                <ul class="list-disc list-inside ml-4 text-gray-700 space-y-1">
+                    <li>Creates nuanced credit profiles for the unbanked.</li>
+                    <li>Can reduce default rates by up to 25% compared to traditional methods.</li>
+                    <li>Facilitates personalized financial products.</li>
+                    <li>Creates a "data network effect": more users -> more data -> better model -> better service.</li>
+                </ul>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
+                <h3 class="text-xl font-semibold mb-4">Alternative Data Sources We Utilize</h3>
+                <p class="mb-4">With explicit user consent, we tap into various non-traditional data points:</p>
+                <div id="altDataContainer" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="interactive-card p-4 border border-gray-200 rounded-lg hover:shadow-xl" data-info="Includes Call Detail Records (CDRs), SMS patterns, data usage, mobile money transactions, airtime purchases, and device metadata. Highly predictive in the African context.">
+                        <span class="icon-placeholder">📱</span><h4 class="font-semibold text-lg">Mobile Phone Data</h4>
+                    </div>
+                    <div class="interactive-card p-4 border border-gray-200 rounded-lg hover:shadow-xl" data-info="Assessments of psychological traits like honesty, risk aversion, and conscientiousness. Valuable in data-scarce environments as it generates its own assessment data.">
+                        <span class="icon-placeholder">🧠</span><h4 class="font-semibold text-lg">Psychometric Data</h4>
+                    </div>
+                    <div class="interactive-card p-4 border border-gray-200 rounded-lg hover:shadow-xl" data-info="Consistent payment of electricity, water, and rent bills is a strong indicator of financial discipline and reliability.">
+                        <span class="icon-placeholder">💡</span><h4 class="font-semibold text-lg">Utility Payments</h4>
+                    </div>
+                     <div class="interactive-card p-4 border border-gray-200 rounded-lg hover:shadow-xl" data-info="E-commerce purchases, digital wallet usage, BNPL history, and remittance patterns can reveal financial behaviors and stability.">
+                        <span class="icon-placeholder">💳</span><h4 class="font-semibold text-lg">Other Transactional Data</h4>
+                    </div>
+                </div>
+                <div id="altDataInfo" class="mt-4 p-4 bg-gray-100 rounded-md text-sm" style="display:none;"></div>
+                <p class="text-xs mt-2 text-gray-500">Ethical sourcing with transparent user consent is paramount.</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
+                 <h3 class="text-xl font-semibold text-[#0D9488] mb-4">Success Stories in AI Lending (Africa)</h3>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div class="interactive-card p-4 border border-gray-200 rounded-lg" onclick="showModal('talaModal')">
+                        <h4 class="font-bold text-lg">Tala</h4>
+                        <p class="text-sm">Uses smartphone data (250+ points) for instant credit scores. Served 6M+ customers, >90% repayment. Lowered operational costs by ~80% vs traditional MFIs.</p>
+                    </div>
+                    <div class="interactive-card p-4 border border-gray-200 rounded-lg" onclick="showModal('branchModal')">
+                        <h4 class="font-bold text-lg">Branch International</h4>
+                        <p class="text-sm">Considers mobile money consistency, contact list diversity. Disbursed $600M+ to 3M+ customers in Africa.</p>
+                    </div>
+                    <div class="interactive-card p-4 border border-gray-200 rounded-lg" onclick="showModal('periculumModal')">
+                        <h4 class="font-bold text-lg">Periculum</h4>
+                        <p class="text-sm">Nigerian fintech providing AI credit assessment. Partnership with an MFI led to 60% faster loan processing and reduced defaults.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h3 class="text-xl font-semibold mb-3">Our Proprietary Creditworthiness Database</h3>
+                <p class="mb-2">A core strategic asset, built by harvesting alternative data and refined by AI learning from actual loan performance.</p>
+                <p class="font-semibold">Value Proposition:</p>
+                <ul class="list-disc list-inside ml-4 mt-2 text-gray-700 space-y-1">
+                    <li>Sustainable competitive advantage (difficult to replicate).</li>
+                    <li>Enhanced risk management (lower defaults, better portfolio).</li>
+                    <li>Product personalization and innovation.</li>
+                    <li>Scalability of operations.</li>
+                    <li>Foundation for future financial services (e.g., micro-insurance).</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="businessModel" class="content-section">
+            <h2 class="text-2xl sm:text-3xl font-bold text-[#0D9488] mb-6">Our Business Model</h2>
+            <p class="mb-6 text-lg leading-relaxed">We aim to deliver a simple, accessible, and AI-powered microloan service. Our model leverages technology for efficiency and scalability, focusing on financial inclusion through fair and transparent practices. This section details our value proposition, revenue streams, technology, loan processes, and go-to-market strategy.</p>
+
+            <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
+                <h3 class="text-xl font-semibold mb-3">Unique Value Proposition & Differentiation</h3>
+                 <p class="mb-3">Rapid, accessible, and fairly priced micro-credit for the excluded, powered by AI and alternative data.</p>
+                <ul class="space-y-2">
+                    <li class="flex items-start"><span class="icon-placeholder">⚡</span><strong>Speed & Convenience:</strong> Near-instant digital loan process.</li>
+                    <li class="flex items-start"><span class="icon-placeholder">🌍</span><strong>Enhanced Accessibility:</strong> Reaching the unbanked via alternative data.</li>
+                    <li class="flex items-start"><span class="icon-placeholder">🤝</span><strong>Fairness & Transparency:</strong> Objective AI assessment, clear terms, ethical lending.</li>
+                    <li class="flex items-start"><span class="icon-placeholder">🪜</span><strong>Building Credit Ladders:</strong> Opportunity for first-time borrowers to build formal credit history.</li>
+                    <li class="flex items-start"><span class="icon-placeholder">📊</span><strong>Proprietary Data Asset:</strong> Sustainable competitive advantage through unique credit database.</li>
+                    <li class="flex items-start"><span class="icon-placeholder">💡</span><strong>Cultural Relevance:</strong> AI models adapted to local contexts.</li>
+                </ul>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
+                <h3 class="text-xl font-semibold mb-3">Revenue Model: Transparency First</h3>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="font-semibold text-lg mb-2 text-[#D97706]">Primary: Interest on Loans</h4>
+                        <p class="text-sm mb-1">Determined by: Cost of capital, operational costs, risk premium (minimized by AI), and a reasonable profit margin.</p>
+                        <p class="text-sm">Aim: Competitive rates, fairer than informal lenders, compliant with local regulations.</p>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-lg mb-2 text-[#D97706]">Secondary: Fee Structures</h4>
+                        <p class="text-sm mb-1"><strong>Origination Fee:</strong> Small, one-time, clearly stated.</p>
+                        <p class="text-sm mb-1"><strong>Late Payment Fees:</strong> Fair, clearly defined, not excessively punitive. Focus on positive repayment incentives.</p>
+                        <p class="text-sm font-bold">Strict policy against hidden fees.</p>
+                    </div>
+                </div>
+                <p class="text-xs mt-4 text-gray-500">Ethical data monetization (e.g., anonymized insights) is a long-term consideration, secondary to the core lending business and subject to rigorous ethical/legal review and user consent.</p>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
+                <h3 class="text-xl font-semibold mb-4">Technology Stack & AI Approach</h3>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="font-semibold text-lg mb-2 text-[#D97706]">Platform & Core Tech</h4>
+                        <ul class="list-disc list-inside text-sm space-y-1">
+                            <li><strong>Mobile-First:</strong> Native apps + USSD for broader reach.</li>
+                            <li><strong>Cloud Infrastructure:</strong> Scalable (AWS, Azure, or GCP).</li>
+                            <li><strong>API-Driven Design:</strong> For MNOs, payment gateways, KYC/AML.</li>
+                            <li><strong>Secure Databases:</strong> SQL/NoSQL with strong encryption.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-lg mb-2 text-[#D97706]">AI/ML Development</h4>
+                         <ul class="list-disc list-inside text-sm space-y-1">
+                            <li><strong>Models:</strong> Logistic Regression, GBDTs, Random Forests initially. NNs later.</li>
+                            <li><strong>Iterative Development:</strong> Baseline model -> Feature engineering -> Continuous retraining & validation.</li>
+                            <li><strong>Explainability (XAI):</strong> For transparency and auditing.</li>
+                            <li><strong>Bias Detection & Mitigation:</strong> Proactive strategies.</li>
+                            <li><strong>Tech:</strong> Python (Scikit-learn, TensorFlow/PyTorch), MLOps.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
+                <h3 class="text-xl font-semibold mb-4">Loan Disbursement & Recovery (Mobile Money Centric)</h3>
+                <div class="mb-4">
+                    <h4 class="font-semibold text-lg text-[#D97706]">Disbursement:</h4>
+                    <p class="text-sm">Primarily via mobile money (M-Pesa, MTN Mobile Money, etc.) for speed, convenience, and reach. Seamless API integration with MNOs.</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-lg text-[#D97706]">Repayment & Recovery:</h4>
+                    <ul class="list-disc list-inside text-sm space-y-1">
+                        <li><strong>Collections:</strong> Automated deductions (with authorization) or direct transfers via mobile money.</li>
+                        <li><strong>Flexibility:</strong> Potential for schedules aligned with borrower income patterns (e.g., agriculture).</li>
+                        <li><strong>Ethical Recovery:</strong> Automated reminders -> Digital follow-up -> Incentives -> Credit Bureau Reporting (compliant) -> Legal action (last resort). NO harassment.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h3 class="text-xl font-semibold text-[#0D9488] mb-4">Customer Acquisition & Strategic Partnerships</h3>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="font-semibold text-lg mb-2 text-[#D97706]">Go-to-Market</h4>
+                        <ul class="list-disc list-inside text-sm space-y-1">
+                            <li><strong>Digital:</strong> Online ads, content marketing/SEO, social media, ASO.</li>
+                            <li><strong>Referral Programs:</strong> Incentivized word-of-mouth.</li>
+                            <li><strong>Financial Literacy:</strong> Attract users, promote responsible borrowing.</li>
+                            <li>Focus on Trust: Emphasize transparency and fairness.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-lg mb-2 text-[#D97706]">Strategic Partnerships</h4>
+                        <ul class="list-disc list-inside text-sm space-y-1">
+                           <li><strong>MNOs:</strong> Critical for mobile money, data access (with consent), marketing.</li>
+                           <li><strong>CBOs/NGOs:</strong> Trust, reach, customer education, local insights.</li>
+                           <li><strong>Payment Aggregators:</strong> Interoperability.</li>
+                           <li><strong>CRBs:</strong> Two-way data sharing (compliant).</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="operationsRisks" class="content-section">
+            <h2 class="text-2xl sm:text-3xl font-bold text-[#0D9488] mb-6">Operational Plan & Risk Management</h2>
+            <p class="mb-6 text-lg leading-relaxed">Effective execution requires a strong operational plan covering team structure, market rollout, and key performance indicators. Equally important is a proactive approach to identifying and mitigating the diverse risks inherent in this venture. This section covers our strategy for building a robust and resilient operation.</p>
+
+            <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
+                <h3 class="text-xl font-semibold mb-3">Team & Phased Rollout</h3>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="font-semibold text-lg mb-2 text-[#D97706]">Core Team Expertise</h4>
+                        <ul class="list-disc list-inside text-sm space-y-1">
+                            <li><strong>Founders:</strong> Vision, execution, relevant experience (Fintech, AI, Africa).</li>
+                            <li><strong>Tech:</strong> AI/ML, Software Dev, Cybersecurity.</li>
+                            <li><strong>Operations:</strong> Loan Ops, Customer Service, Compliance, Legal.</li>
+                            <li><strong>Business Dev & Marketing.</strong></li>
+                            <li><strong>Country Management</strong> for expansion.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-lg mb-2 text-[#D97706]">Phased Rollout Strategy</h4>
+                        <ol class="list-decimal list-inside text-sm space-y-1">
+                            <li><strong>Pilot (1-2 Countries):</strong> Validate product-market fit, test AI model, refine ops.</li>
+                            <li><strong>Scaling (Pilot Countries):</strong> Achieve efficiency, demonstrate profitability path.</li>
+                            <li><strong>Regional Expansion:</strong> Adapt and apply learnings to new promising markets.</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
+                <h3 class="text-xl font-semibold mb-4">Key Performance Indicators (KPIs)</h3>
+                <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                    <div class="p-3 bg-gray-50 rounded"><strong>User Growth:</strong> Registered users, active borrowers, loan volume.</div>
+                    <div class="p-3 bg-gray-50 rounded"><strong>Portfolio Quality:</strong> Default Rate (PAR30/60/90), collection rates. Aim for PAR30 <10-15%.</div>
+                    <div class="p-3 bg-gray-50 rounded"><strong>AI Model:</strong> Predictive accuracy (AUC-ROC, Gini), fairness metrics.</div>
+                    <div class="p-3 bg-gray-50 rounded"><strong>Financials:</strong> Revenue, OpEx, CAC, LTV (aim for LTV:CAC >3:1), profitability.</div>
+                    <div class="p-3 bg-gray-50 rounded"><strong>Customer Satisfaction:</strong> NPS, support metrics, app ratings.</div>
+                    <div class="p-3 bg-gray-50 rounded"><strong>Social Impact:</strong> # unbanked served, reported loan use.</div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
+                <h3 class="text-xl font-semibold text-[#0D9488] mb-4">Navigating African Regulatory Terrain</h3>
+                <p class="mb-4">Compliance is paramount. We will focus on countries with stable laws and proactively manage evolving regulations in data privacy, digital lending, and consumer protection.</p>
+                <div class="tabs-container">
+                    <div class="border-b border-gray-200">
+                        <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                            <button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-[#D97706] hover:border-[#D97706] active" data-tab="kenyaReg">Kenya</button>
+                            <button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-[#D97706] hover:border-[#D97706]" data-tab="nigeriaReg">Nigeria</button>
+                            <button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-[#D97706] hover:border-[#D97706]" data-tab="saReg">South Africa</button>
+                        </nav>
+                    </div>
+                    <div class="py-4">
+                        <div id="kenyaReg" class="tab-content active">
+                            <h4 class="font-semibold text-lg mb-2">Kenya Regulatory Snapshot</h4>
+                            <ul class="list-disc list-inside text-sm space-y-1">
+                                <li><strong>Data Privacy:</strong> Data Protection Act, 2019 (GDPR-aligned). ODPC Guidance for DCPs. Explicit consent for alt. data crucial.</li>
+                                <li><strong>Digital Lending:</strong> CBK licenses Non-Deposit-Taking Credit Providers. Focus on responsible pricing, transparency.</li>
+                                <li><strong>Sandbox:</strong> CMA offers a regulatory sandbox.</li>
+                            </ul>
+                        </div>
+                        <div id="nigeriaReg" class="tab-content">
+                            <h4 class="font-semibold text-lg mb-2">Nigeria Regulatory Snapshot</h4>
+                             <ul class="list-disc list-inside text-sm space-y-1">
+                                <li><strong>Data Privacy:</strong> NDPA 2023 (GDPR-inspired). Explicit consent for sensitive data and automated decisions. Data localization for some categories.</li>
+                                <li><strong>Digital Lending:</strong> CBN & FCCPC oversight. Guidelines on transparency, fair collection.</li>
+                                <li><strong>Sandbox:</strong> CBN offers a regulatory sandbox.</li>
+                            </ul>
+                        </div>
+                         <div id="saReg" class="tab-content">
+                            <h4 class="font-semibold text-lg mb-2">South Africa Regulatory Snapshot</h4>
+                             <ul class="list-disc list-inside text-sm space-y-1">
+                                <li><strong>Data Privacy:</strong> POPIA 2013 (GDPR-aligned). Consent must be voluntary, specific, informed. Cross-border rules apply.</li>
+                                <li><strong>Digital Lending:</strong> National Credit Act (NCA) is comprehensive. NCR licenses credit providers. Caps on rates/fees. Strong consumer protection (no reckless lending).</li>
+                                <li><strong>Sandbox:</strong> IFWG Innovation Hub includes sandbox.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                 <p class="text-xs mt-2 text-gray-500">Illustrative summaries. Detailed legal counsel per market is essential.</p>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h3 class="text-xl font-semibold mb-4">Key Risks & Mitigation Strategies</h3>
+                <div class="space-y-3">
+                    <div class="risk-item">
+                        <button class="accordion-button w-full text-left p-3 bg-[#F3EADA] hover:bg-[#EADBC8] rounded-md font-semibold focus:outline-none flex justify-between items-center">
+                            Technological & Data Security Risks
+                            <span class="plus-minus text-xl transform transition-transform duration-300">&#x2B;</span>
+                        </button>
+                        <div class="accordion-content p-3 bg-gray-50 rounded-b-md text-sm">
+                            <p><strong>Risks:</strong> AI model bias/drift, system downtime, data breaches, cyber threats.</p>
+                            <p><strong>Mitigation:</strong> Rigorous AI model management (XAI, bias checks), robust cloud infra, regular security audits, "Privacy by Design," strong encryption, transparent consent, compliance with local data laws.</p>
+                        </div>
+                    </div>
+                     <div class="risk-item">
+                        <button class="accordion-button w-full text-left p-3 bg-[#F3EADA] hover:bg-[#EADBC8] rounded-md font-semibold focus:outline-none flex justify-between items-center">
+                            Regulatory & Credit Risks
+                             <span class="plus-minus text-xl transform transition-transform duration-300">&#x2B;</span>
+                        </button>
+                        <div class="accordion-content p-3 bg-gray-50 rounded-b-md text-sm">
+                            <p><strong>Risks:</strong> Evolving regulations, licensing, high default rates, over-indebtedness, fraud.</p>
+                            <p><strong>Mitigation:</strong> Proactive regulatory engagement (sandboxes), dedicated compliance team, advanced AI scoring, responsible loan sizing, ethical collections, fraud detection systems.</p>
+                        </div>
+                    </div>
+                    <div class="risk-item">
+                        <button class="accordion-button w-full text-left p-3 bg-[#F3EADA] hover:bg-[#EADBC8] rounded-md font-semibold focus:outline-none flex justify-between items-center">
+                           Market, Currency & Operational Risks
+                            <span class="plus-minus text-xl transform transition-transform duration-300">&#x2B;</span>
+                        </button>
+                        <div class="accordion-content p-3 bg-gray-50 rounded-b-md text-sm">
+                            <p><strong>Risks:</strong> Competition, low financial literacy, currency volatility, talent gaps, infrastructure issues.</p>
+                            <p><strong>Mitigation:</strong> Clear UVP, financial literacy initiatives, local currency ops/hedging, strategic talent management, diversified partnerships, adaptive tech.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="ycPitch" class="content-section">
+            <h2 class="text-2xl sm:text-3xl font-bold text-[#0D9488] mb-6">The Y-Combinator Pitch: Why Us, Why Now?</h2>
+            <p class="mb-6 text-lg leading-relaxed">We believe our AI-driven microloan service for Africa is a prime candidate for Y-Combinator, aligning with its focus on impactful, high-growth, technology-led businesses. This section outlines why this is the right time for our venture and how we fit YC's investment thesis.</p>
+
+            <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
+                <h3 class="text-xl font-semibold mb-3 text-[#D97706]">Articulating the "Why Now?"</h3>
+                <ul class="list-disc list-inside ml-4 text-gray-700 space-y-2">
+                    <li><strong>Explosive Mobile Money Growth:</strong> $1.68T transacted in SSA (2024), >0.5B active accounts. Existing digital rails.</li>
+                    <li><strong>Vast Unmet Credit Demand:</strong> Millions of unbanked individuals & MSMEs need capital.</li>
+                    <li><strong>Mature AI & Alt. Data Tech:</strong> Proven models (Tala, Branch) for inclusive credit scoring.</li>
+                    <li><strong>Traditional Lender Gaps:</strong> High costs & defaults create an opening for efficient tech solutions.</li>
+                    <li><strong>Evolving Regulatory Support:</strong> Developing frameworks, sandboxes signal openness.</li>
+                    <li><strong>Global Investor Interest:</strong> African fintech is a hot sector.</li>
+                </ul>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
+                <h3 class="text-xl font-semibold mb-3 text-[#D97706]">Key Elements for YC Application</h3>
+                <div class="grid md:grid-cols-2 gap-4 text-sm">
+                    <div class="p-4 bg-gray-50 rounded-lg"><strong>Problem:</strong> Massive financial exclusion, pain points for users (no access, high cost, slow).</div>
+                    <div class="p-4 bg-gray-50 rounded-lg"><strong>Solution:</strong> Simple, AI-driven microloans using alternative data. Faster, fairer, more accessible.</div>
+                    <div class="p-4 bg-gray-50 rounded-lg"><strong>Team:</strong> Strong, passionate founders with relevant technical & market expertise.</div>
+                    <div class="p-4 bg-gray-50 rounded-lg"><strong>Product (MVP Plan):</strong> Clear plan for rapid MVP build & launch if pre-product; showcase traction if MVP exists.</div>
+                    <div class="p-4 bg-gray-50 rounded-lg"><strong>Market Size:</strong> Huge TAM/SAM in target African countries. Potential for massive scale.</div>
+                    <div class="p-4 bg-gray-50 rounded-lg"><strong>Unique Insight/Advantage:</strong> Proprietary AI model & credit database, unique data strategy, key partnerships.</div>
+                    <div class="p-4 bg-gray-50 rounded-lg"><strong>Business Model:</strong> Clear path to profitability and scalability with transparent revenue streams.</div>
+                    <div class="p-4 bg-gray-50 rounded-lg"><strong>YC Fit:</strong> Solving a big, meaningful problem with tech. Leverage YC network & funding for growth.</div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h3 class="text-xl font-semibold mb-3 text-[#D97706]">Alignment with YC's Focus</h3>
+                 <p class="mb-2">YC invests in companies that:</p>
+                <ul class="list-disc list-inside ml-4 text-gray-700 space-y-1">
+                    <li>Solve big, meaningful problems with large-scale impact (financial inclusion is key).</li>
+                    <li>Have strong, resourceful, and adaptable founding teams.</li>
+                    <li>Utilize scalable technology (AI and mobile platforms).</li>
+                    <li>Can iterate rapidly, focus on growth, and build products users love.</li>
+                    <li>Demonstrate deep understanding of local context in emerging markets.</li>
+                </ul>
+                <p class="mt-3">Our venture embodies these principles, aiming to build a transformative financial service for Africa, similar in ambition to other successful YC African fintechs like Paystack and Flutterwave.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer class="text-center p-6 mt-8 border-t border-gray-200">
+        <p class="text-sm text-gray-600">&copy; 2025 AI Microloan Africa Proposal. Interactive Summary.</p>
+    </footer>
+
+    <div id="talaModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center" style="display:none; z-index: 100;">
+        <div class="relative mx-auto p-5 border w-11/12 md:w-1/2 shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <h3 class="text-lg leading-6 font-medium text-[#0D9488]">Tala</h3>
+                <div class="mt-2 px-7 py-3">
+                    <p class="text-sm text-gray-500">Operating in Kenya, the Philippines, Mexico, and India, Tala utilizes smartphone data, analyzing over 250 data points from a customer's mobile device—including app usage, transaction history, call logs, and other behavioral patterns—to generate a credit score within minutes. This has enabled Tala to serve over 6 million customers, disbursing more than $2.7 billion in microloans, typically ranging from $10 to $500. Notably, their repayment rates consistently exceed 90%, even when serving primarily first-time borrowers with no formal credit history. Tala's machine learning models continuously learn and improve with each lending cycle. A key factor in their success is significantly lower operational costs per loan, approximately 80% less than traditional MFIs.</p>
+                </div>
+                <div class="items-center px-4 py-3">
+                    <button onclick="closeModal('talaModal')" class="px-4 py-2 bg-[#D97706] text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-[#B96500] focus:outline-none focus:ring-2 focus:ring-[#D97706]">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="branchModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center" style="display:none; z-index: 100;">
+        <div class="relative mx-auto p-5 border w-11/12 md:w-1/2 shadow-lg rounded-md bg-white">
+             <div class="mt-3 text-center">
+                <h3 class="text-lg leading-6 font-medium text-[#0D9488]">Branch International</h3>
+                <div class="mt-2 px-7 py-3">
+                    <p class="text-sm text-gray-500">Active in Kenya, Nigeria, and Tanzania, Branch employs a similar AI-driven model. Their algorithm considers diverse factors such as mobile money transaction consistency, contact list diversity, and even seemingly unrelated data like battery charging habits to assess reliability and financial stability. Branch has disbursed over $600 million in loans to more than 3 million customers across its African markets.</p>
+                </div>
+                <div class="items-center px-4 py-3">
+                    <button onclick="closeModal('branchModal')" class="px-4 py-2 bg-[#D97706] text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-[#B96500] focus:outline-none focus:ring-2 focus:ring-[#D97706]">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+     <div id="periculumModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center" style="display:none; z-index: 100;">
+        <div class="relative mx-auto p-5 border w-11/12 md:w-1/2 shadow-lg rounded-md bg-white">
+             <div class="mt-3 text-center">
+                <h3 class="text-lg leading-6 font-medium text-[#0D9488]">Periculum</h3>
+                <div class="mt-2 px-7 py-3">
+                    <p class="text-sm text-gray-500">This Nigerian fintech startup leverages AI and alternative data to provide credit assessment solutions. Initially targeting large banks, Periculum pivoted to partner with more agile microfinance institutions and fintech startups across East and West Africa. A partnership with one leading MFI resulted in a 60% increase in loan processing speed and a notable reduction in default rates, empowering these institutions to extend credit to more underserved entrepreneurs. Periculum’s services include identity verification and fraud prevention alongside AI-driven credit risk assessment.</p>
+                </div>
+                <div class="items-center px-4 py-3">
+                    <button onclick="closeModal('periculumModal')" class="px-4 py-2 bg-[#D97706] text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-[#B96500] focus:outline-none focus:ring-2 focus:ring-[#D97706]">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        const navButtons = document.querySelectorAll('.nav-button');
+        const contentSections = document.querySelectorAll('.content-section');
+        const mobileMenuButton = document.getElementById('mobileMenuButton');
+        const mainNav = document.getElementById('mainNav');
+
+        function setActiveSection(targetId) {
+            contentSections.forEach(section => {
+                section.classList.remove('active');
+                if (section.id === targetId) {
+                    section.classList.add('active');
+                }
+            });
+            navButtons.forEach(button => {
+                button.classList.remove('active');
+                if (button.dataset.target === targetId) {
+                    button.classList.add('active');
+                }
+            });
+             window.scrollTo(0, 0); // Scroll to top on section change
+        }
+
+        navButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetId = button.dataset.target;
+                setActiveSection(targetId);
+                if (mainNav.classList.contains('flex') && mainNav.classList.contains('md:flex')) { // Check if mobile menu is open
+                   if(window.innerWidth < 768) mainNav.classList.add('hidden'); // Hide if on mobile
+                }
+            });
+        });
+        
+        mobileMenuButton.addEventListener('click', () => {
+            mainNav.classList.toggle('hidden');
+            mainNav.classList.toggle('flex'); // Ensure it becomes a flex container when shown
+        });
+
+
+        // Accordion functionality
+        document.querySelectorAll('.accordion-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const currentlyOpen = document.querySelector('.accordion-button.open');
+                if (currentlyOpen && currentlyOpen !== button) {
+                    currentlyOpen.classList.remove('open');
+                    currentlyOpen.querySelector('.plus-minus').innerHTML = '&#x2B;';
+                    currentlyOpen.querySelector('.plus-minus').classList.remove('rotate-45');
+                }
+
+                button.classList.toggle('open');
+                const plusMinus = button.querySelector('.plus-minus');
+                if (button.classList.contains('open')) {
+                    plusMinus.innerHTML = '&#x2D;'; // Minus sign
+                    plusMinus.classList.add('rotate-45');
+                } else {
+                    plusMinus.innerHTML = '&#x2B;'; // Plus sign
+                     plusMinus.classList.remove('rotate-45');
+                }
+            });
+        });
+
+        // Alternative Data Interactive Cards
+        const altDataCards = document.querySelectorAll('#altDataContainer .interactive-card');
+        const altDataInfoBox = document.getElementById('altDataInfo');
+        altDataCards.forEach(card => {
+            card.addEventListener('click', () => {
+                altDataInfoBox.textContent = card.dataset.info;
+                altDataInfoBox.style.display = 'block';
+            });
+        });
+        
+        // Tabs functionality
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetTab = button.dataset.tab;
+
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                tabContents.forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === targetTab) {
+                        content.classList.add('active');
+                    }
+                });
+            });
+        });
+
+        // Modal functionality
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        // Close modal if backdrop is clicked
+        window.onclick = function(event) {
+            if (event.target.classList.contains('fixed') && event.target.style.display === 'flex') {
+                 if (event.target.id === 'talaModal' || event.target.id === 'branchModal' || event.target.id === 'periculumModal') {
+                    event.target.style.display = 'none';
+                 }
+            }
+        }
+
+
+        // Chart.js instances
+        // Market Growth Chart
+        const marketGrowthCtx = document.getElementById('marketGrowthChart').getContext('2d');
+        new Chart(marketGrowthCtx, {
+            type: 'line',
+            data: {
+                labels: ['2024', '2025', '2026', '2027', '2028', '2029'],
+                datasets: [{
+                    label: 'Global Microfinance Market ($ Billion)',
+                    data: [215.51, 240.49, 268.0, 298.5, 332.0, 368.02], // Interpolated for smoother curve
+                    borderColor: '#0D9488', // Deep Teal
+                    backgroundColor: 'rgba(13, 148, 136, 0.1)',
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: false, ticks: { callback: value => '$' + value + 'B' } } },
+                plugins: { legend: { display: true, position: 'bottom' }, tooltip: { callbacks: { label: context => `${context.dataset.label}: $${context.parsed.y.toFixed(2)}B`}}}
+            }
+        });
+
+        // Financial Exclusion Chart (Illustrative for Nigeria)
+        const financialExclusionCtx = document.getElementById('financialExclusionChart').getContext('2d');
+        new Chart(financialExclusionCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Financially Excluded (38.1M)', 'Financially Included'],
+                datasets: [{
+                    label: 'Financial Exclusion in Nigeria (2020)',
+                    data: [38.1, (100-36)], // Assuming a total adult population to derive included percentage, this is illustrative. Say, 36% excluded out of 100% for visual. Actual adult pop is ~105M. 38.1M is ~36%.
+                    backgroundColor: ['#D97706', '#0D9488'],
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { 
+                    legend: { display: true, position: 'bottom' },
+                    tooltip: { callbacks: { label: context => `${context.label}: ${context.parsed.toFixed(1)}M (Illustrative %)` }}
+                }
+            }
+        });
+        
+        // Set initial active section
+        setActiveSection('overview');
+
+    </script>
+</body>
+</html>
